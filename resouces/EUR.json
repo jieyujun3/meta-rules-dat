@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "domain": "bahamut.akamaized.net",
+      "domain_suffix": [
+        "nexo.com",
+        "ip138.com",
+        "hhwj.cc",
+        "gvt1.com",
+        "hinet.net",
+        "viblast.com"
+      ]
+    }
+  ]
+}
