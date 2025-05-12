@@ -1,0 +1,41 @@
+sudo apt update
+sudo apt install qemu-utils
+apt-get install qemu-system-x86
+
+qemu-img create -f  qcow2  -o  size=29.5G ssd32g.qcow2
+
+qemu-system-x86_64 \
+  -drive file=ssd32g.qcow2,format=qcow2,if=virtio,serial=SZHYPO14090903D0164,model=SSD32G
+
+qemu-system-x86_64 \
+  -drive file=ssd32g.qcow2,format=qcow2,if=virtio,serial=SZHYPO14090903D0164,model=SSD32G \
+  -device ide-hd,drive=drive0,geometry.cyls=3850,geometry.heads=255,geometry.sectors=63
+
+验证生成的文件
+qemu-img info ssd32g.qcow2
+
+把ssd32g.qcow2重命令成32G.img
+用虚拟机拿用官方的iso包安装系统到这个32G虚拟机镜像中,安装完先不要进系统,直接关机
+
+本帖隐藏的内容
+安装完成以后关机,备份MBR
+sudo modprobe nbd max_part=8
+
+sudo qemu-nbd --connect=/dev/nbd0 32G.img
+
+sudo fdisk -l /dev/nbd0
+
+sudo dd if=/dev/nbd0 of=mbr_dump bs=512 count=1
+
+用winhex修改工具从偏移量00000100开始到00000140替换为以下字节
+47110226688983991618FA7E00000000B08F6DA0CE6D8A13357403F0146B1DD227C5DEBFBD1B8260BE38DB0016D8B0BD110B34457997C8AC956FB7551081C1CB8DA79C0E6160A8DFE79F6FC38E543905
+
+把mbr写回镜像中
+sudo dd if=mbr_dump of=/dev/nbd0 bs=512 count=1
+方法二:linux下用shell完成脚本
+
+apt update && apt install -y xxd
+
+
+
+bash -c 'dd if=/dev/sdc of=/root/ros_mbr_dump bs=512 count=1 && xxd -p /root/ros_mbr_dump | sed "s/^\(.\{100\}\).\{40\}/\147110226688983991618FA7E00000000B08F6DA0CE6D8A13357403F0146B1DD227C5DEBFBD1B8260BE38DB0016D8B0BD110B34457997C8AC956FB7551081C1CB8DA79C0E6160A8DFE79F6FC38E543905/" | xxd -r -p | dd of=/dev/sdc bs=512 count=1'
